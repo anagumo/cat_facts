@@ -23,14 +23,11 @@ struct FactsView: View {
                 } label: {
                     HStack {
                         Image(systemName: "arrow.clockwise")
-                        Text("Try again")
+                        Text("Try cat facts")
                     }
                 }
             }
         }
-        .onAppear(perform: {
-            factsViewModel.load()
-        })
     }
 }
 

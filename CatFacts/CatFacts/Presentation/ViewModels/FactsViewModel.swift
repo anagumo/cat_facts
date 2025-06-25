@@ -14,11 +14,13 @@ final class FactsViewModel {
     
     init(getFactsUseCase: GetFactsUseCaseProtocol = GetFactsUseCase()) {
         self.getFactsUseCase = getFactsUseCase
-        factsState = .loading
+        factsState = .error
         facts = []
     }
     
     func load() {
+        factsState = .loading
+        
         Task { @MainActor in
             do {
                 let facts = try await getFactsUseCase.run()
