@@ -10,6 +10,5 @@
 * TODO: It is going to implement security keys **obfuscation**.
 
 ## Screenshots
-| SSL Success vs SSL Error |
-|--------|
-| <img src="Images/SSLPinning.png" width="700"/>|
+### SSL Success vs SSL Error 
+![](Images/SSLPinning.png)
