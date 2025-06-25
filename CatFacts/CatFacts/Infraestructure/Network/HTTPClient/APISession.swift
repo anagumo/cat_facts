@@ -8,7 +8,7 @@ final class APISession: APISessionContract {
     static let shared = APISession()
     private let urlSession: URLSession
     
-    init(urlSession: URLSession = .shared) {
+    init(urlSession: URLSession = URLSessionService.shared) {
         self.urlSession = urlSession
     }
     
