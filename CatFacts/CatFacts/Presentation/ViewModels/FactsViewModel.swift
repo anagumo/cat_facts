@@ -1,7 +1,7 @@
 import Foundation
 
 enum FactsState {
-    case none, loading, loaded
+    case loading, loaded, error
 }
 
 @Observable
@@ -14,13 +14,11 @@ final class FactsViewModel {
     
     init(getFactsUseCase: GetFactsUseCaseProtocol = GetFactsUseCase()) {
         self.getFactsUseCase = getFactsUseCase
-        factsState = .none
+        factsState = .loading
         facts = []
     }
     
     func load() {
-        factsState = .loading
-        
         Task { @MainActor in
             do {
                 let facts = try await getFactsUseCase.run()
@@ -28,6 +26,7 @@ final class FactsViewModel {
                 factsState = .loaded
             } catch {
                 debugPrint(error.localizedDescription)
+                factsState = .error
             }
         }
     }

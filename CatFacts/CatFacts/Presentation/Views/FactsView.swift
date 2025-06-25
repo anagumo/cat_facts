@@ -10,8 +10,6 @@ struct FactsView: View {
     var body: some View {
         NavigationStack {
             switch factsViewModel.factsState {
-            case .none:
-                Text("Nothing to show")
             case .loading:
                 Text("Loading...")
             case .loaded:
@@ -19,6 +17,15 @@ struct FactsView: View {
                     Text(item.text)
                 }
                 .navigationTitle("🐱 Cat Facts")
+            case .error:
+                Button {
+                    factsViewModel.load()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Try again")
+                    }
+                }
             }
         }
         .onAppear(perform: {
