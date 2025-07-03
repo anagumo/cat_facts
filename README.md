@@ -11,7 +11,7 @@
 
 ## Screenshots
 ### SSL Public Key Success vs SSL Error 
-![](Images/sslkey.png)
+![](Images/sslKey.png)
 
 ### SSL Certificate Success 
-![](Images/sslcertificate.png)
+![](Images/sslCertificate.png)
