@@ -4,10 +4,12 @@ import CryptoKit
 /// Implementation of a Secure Sokets Layer (TLS) to protect the communication of the app with the server to avoid MITM or interceptions.
 final class SSLPinningService: NSObject, URLSessionDelegate {
     private let crypto: Crypto
+    private let certificatePinning: Bool
     
     // MARK: Lifecycle
     override init() {
         crypto = Crypto()
+        certificatePinning = true
     }
     
     // Intercept server connection to evaluate the server trust
@@ -22,19 +24,48 @@ final class SSLPinningService: NSObject, URLSessionDelegate {
             return
         }
         
-        // Create a data representation of the security key
-        let secKeyData = SecCertificateCopyData(secCertificate) as Data
-        
-        // Create a SHA256 representation of the security key data
-        let secKeySHA256 = sha256(data: secKeyData)
-        
-        // Evaluate if security keys match
-        if secKeySHA256 == crypto.getDecryptedPublicKey() {
-            debugPrint("SSLPinnning Success: Security Keys match")
-            completionHandler(.useCredential, URLCredential(trust: secTrust))
+        if certificatePinning {
+            // Create an array of SSL policies
+            let policies = NSMutableArray()
+            let secPolicy = SecPolicyCreateSSL(true, "catfact.ninja" as CFString)
+            policies.add(secPolicy)
+            // Set SSL policies for a security certificate evaluation
+            SecTrustSetPolicies(secTrust, policies)
+            // Evaluate if the security server match with the previous policy set
+            let isSecTrust = SecTrustEvaluateWithError(secTrust, nil)
+            
+            // Create a data representation of the remote security certificate
+            let remoteSecCertificate: NSData = SecCertificateCopyData(secCertificate)
+            // Get a representation of the local security certificate
+            guard let localSecCertificatePath = Bundle.main.path(forResource: "catfact.ninja", ofType: "cer"),
+                  let localSecCertificate = NSData(contentsOfFile: localSecCertificatePath) else {
+                debugPrint("SSLPinnning Error: Local security certificate not found")
+                completionHandler(.cancelAuthenticationChallenge, nil)
+                return
+            }
+            
+            if isSecTrust && remoteSecCertificate.isEqual(to: localSecCertificate as Data) {
+                debugPrint("SSLPinnning Success: Security certificates match")
+                completionHandler(.useCredential, URLCredential(trust: secTrust))
+            } else {
+                debugPrint("SSLPinning Error: Security certificates does not match")
+                completionHandler(.cancelAuthenticationChallenge, nil)
+            }
         } else {
-            debugPrint("SSLPinning Error: Security keys does not match")
-            completionHandler(.cancelAuthenticationChallenge, nil)
+            // Create a data representation of the security key
+            let secKeyData = SecCertificateCopyData(secCertificate) as Data
+            
+            // Create a SHA256 representation of the security key data
+            let secKeySHA256 = sha256(data: secKeyData)
+            
+            // Evaluate if security keys match
+            if secKeySHA256 == crypto.getDecryptedPublicKey() {
+                debugPrint("SSLPinnning Success: Security keys match")
+                completionHandler(.useCredential, URLCredential(trust: secTrust))
+            } else {
+                debugPrint("SSLPinning Error: Security keys does not match")
+                completionHandler(.cancelAuthenticationChallenge, nil)
+            }
         }
     }
 }
